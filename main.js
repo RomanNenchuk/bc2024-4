@@ -1,5 +1,6 @@
 const { program } = require("commander");
-
+const fs = require("fs");
+const path = require("path");
 const http = require("http");
 
 program
@@ -26,7 +27,29 @@ if (!сache) {
   process.exit(1);
 }
 
-const server = http.createServer((req, res) => {});
+const server = http.createServer((req, res) => {
+  const url = req.url;
+
+  if (req.method === "GET") {
+    // Ігноруємо запит до favicon.ico
+    if (url === "/favicon.ico") {
+      res.writeHead(204); // 204 No Content
+      res.end();
+      return;
+    }
+
+    if (fs.existsSync(`./cache${url}.jpeg`)) {
+      fs.promises.readFile(`./cache${url}.jpeg`).then((data) => {
+        res.setHeader("Content-Type", "image/jpeg");
+        res.writeHead(200);
+        res.end(data);
+      });
+    } else {
+      res.writeHead(404);
+      res.end("Not Found");
+    }
+  }
+});
 
 server.listen(port, host, () => {
   console.log(`Сервер запущений на http://${options.host}:${options.port}`);
