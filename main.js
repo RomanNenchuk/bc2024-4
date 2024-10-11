@@ -2,6 +2,7 @@ const { program } = require("commander");
 const fs = require("fs");
 const path = require("path");
 const http = require("http");
+const superagent = require("superagent");
 
 program
   .option("-h, --host <server address>", "server address")
@@ -48,6 +49,40 @@ const server = http.createServer((req, res) => {
       res.writeHead(404);
       res.end("Not Found");
     }
+  } else if (req.method === "PUT") {
+    let body = [];
+
+    req.on("data", (chunk) => {
+      body.push(chunk);
+    });
+
+    req.on("end", () => {
+      const buffer = Buffer.concat(body); // Об'єднуємо всі частини в один буфер
+
+      // Записуємо файл
+      fs.writeFile(`./cache${req.url}.jpeg`, buffer, (err) => {
+        if (!err) {
+          res.writeHead(201);
+          res.end("File created successfully");
+          return;
+        }
+        res.writeHead(500);
+        res.end("Server error");
+      });
+    });
+  } else if (req.method === "DELETE") {
+    fs.unlink(`./cache${url}.jpeg`, (err) => {
+      if (!err) {
+        res.writeHead(200);
+        res.end("File deleted successfully");
+        return;
+      }
+      res.writeHead(404);
+      res.end("File not found");
+    });
+  } else {
+    res.writeHead(405);
+    res.end("Method not allowed");
   }
 });
 
