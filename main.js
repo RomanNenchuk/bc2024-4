@@ -13,7 +13,7 @@ program.parse(process.argv);
 const options = program.opts();
 const host = options.host;
 const port = options.port;
-const сache = options.Cache;
+const cache = options.Cache;
 
 if (!host) {
   console.error("Please, specify server address (host)");
@@ -23,7 +23,7 @@ if (!port) {
   console.error("Please, specify server port number");
   process.exit(1);
 }
-if (!сache) {
+if (!cache) {
   console.error("Please, specify the path to the directory with cached files");
   process.exit(1);
 }
@@ -39,15 +39,30 @@ const server = http.createServer((req, res) => {
       return;
     }
 
-    if (fs.existsSync(`./cache${url}.jpeg`)) {
-      fs.promises.readFile(`./cache${url}.jpeg`).then((data) => {
+    if (fs.existsSync(`${cache}${url}.jpeg`)) {
+      fs.promises.readFile(`${cache}${url}.jpeg`).then((data) => {
         res.setHeader("Content-Type", "image/jpeg");
         res.writeHead(200);
         res.end(data);
       });
     } else {
-      res.writeHead(404);
-      res.end("Not Found");
+      superagent
+        .get(`https://http.cat${url}`)
+        .then((response) => {
+          const data = response.body;
+
+          // Зберігаємо нове зображення у кеш
+          fs.promises.writeFile(`${cache}${url}.jpeg`, data).then(() => {
+            res.setHeader("Content-Type", "image/jpeg");
+            res.writeHead(200);
+            res.end(data);
+            return;
+          });
+        })
+        .catch((err) => {
+          res.writeHead(404);
+          res.end("Status Not Found");
+        });
     }
   } else if (req.method === "PUT") {
     let body = [];
@@ -60,7 +75,7 @@ const server = http.createServer((req, res) => {
       const buffer = Buffer.concat(body); // Об'єднуємо всі частини в один буфер
 
       // Записуємо файл
-      fs.writeFile(`./cache${req.url}.jpeg`, buffer, (err) => {
+      fs.writeFile(`${cache}${req.url}.jpeg`, buffer, (err) => {
         if (!err) {
           res.writeHead(201);
           res.end("File created successfully");
@@ -71,7 +86,7 @@ const server = http.createServer((req, res) => {
       });
     });
   } else if (req.method === "DELETE") {
-    fs.unlink(`./cache${url}.jpeg`, (err) => {
+    fs.unlink(`${cache}${url}.jpeg`, (err) => {
       if (!err) {
         res.writeHead(200);
         res.end("File deleted successfully");
