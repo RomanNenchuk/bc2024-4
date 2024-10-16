@@ -30,6 +30,11 @@ if (!cache) {
 
 const server = http.createServer((req, res) => {
   const url = req.url;
+  if (url === "/") {
+    res.writeHead(204);
+    res.end();
+    return;
+  }
 
   if (req.method === "GET") {
     // Ігноруємо запит до favicon.ico
@@ -52,8 +57,7 @@ const server = http.createServer((req, res) => {
         .get(`https://http.cat${url}`)
         .then((response) => {
           const data = response.body;
-
-          // Зберігаємо нове зображення у кеш
+          // Зберігаю нове зображення у кеш
           fs.promises.writeFile(filePath, data).then(() => {
             res.setHeader("Content-Type", "image/jpeg");
             res.writeHead(200);
@@ -106,5 +110,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(port, host, () => {
-  console.log(`Сервер запущений на http://${options.host}:${options.port}`);
+  console.log(`Сервер запущений на http://${host}:${port}`);
 });
