@@ -13,21 +13,20 @@ program.parse(process.argv);
 const options = program.opts();
 const host = options.host;
 const port = options.port;
-let cache = options.cache;
-cache = "./cache2";
+const cache = options.cache;
 
-// if (!host) {
-//   console.error("Please, specify server address (host)");
-//   process.exit(1);
-// }
-// if (!port) {
-//   console.error("Please, specify server port number");
-//   process.exit(1);
-// }
-// if (!cache) {
-//   console.error("Please, specify the path to the directory with cached files");
-//   process.exit(1);
-// }
+if (!host) {
+  console.error("Please, specify server address (host)");
+  process.exit(1);
+}
+if (!port) {
+  console.error("Please, specify server port number");
+  process.exit(1);
+}
+if (!cache) {
+  console.error("Please, specify the path to the directory with cached files");
+  process.exit(1);
+}
 
 const server = http.createServer((req, res) => {
   const url = req.url;
@@ -125,10 +124,10 @@ const server = http.createServer((req, res) => {
   }
 });
 
-// server.listen(port, host, () => {
-//   console.log(`Сервер запущений на http://${host}:${port}`);
-// });
-
-server.listen("3000", "127.0.0.1", () => {
-  console.log(`Сервер запущений на http://${options.host}:${options.port}`);
+server.listen(port, host, () => {
+  console.log(`Сервер запущений на http://${host}:${port}`);
 });
+
+// server.listen("3000", "127.0.0.1", () => {
+//   console.log(`Сервер запущений на http://${options.host}:${options.port}`);
+// });
